@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isStaff() { return signedIn() && request.auth.token.role in ['owner','manager','staff']; }
+    function isOwnerOrManager() { return signedIn() && request.auth.token.role in ['owner','manager']; }
+    function validMoney(v) { return v is number && v >= 0; }
+    function validQty(v) { return v is int && v >= 0; }
+
+    match /products/{id} {
+      allow read: if isStaff();
+      allow create, update: if isOwnerOrManager()
+        && request.resource.data.name is string
+        && request.resource.data.category in ['panel','battery','body','board','kit','accessories']
+        && validMoney(request.resource.data.purchasePrice)
+        && validMoney(request.resource.data.salePrice)
+        && validQty(request.resource.data.stockQuantity)
+        && validQty(request.resource.data.lowStockAlert);
+      allow delete: if isOwnerOrManager();
+    }
+    match /customers/{id} {
+      allow read: if isStaff();
+      allow create, update: if isStaff() && request.resource.data.name is string && validMoney(request.resource.data.totalReceivable);
+      allow delete: if isOwnerOrManager();
+    }
+    match /sales/{id} { allow read, create, update: if isStaff(); allow delete: if isOwnerOrManager(); }
+    match /sale_items/{id} { allow read, create: if isStaff(); allow update, delete: if isOwnerOrManager(); }
+    match /payments/{id} { allow read, create: if isStaff(); allow update, delete: if isOwnerOrManager(); }
+    match /purchases/{id} { allow read, create: if isStaff(); allow update, delete: if isOwnerOrManager(); }
+    match /purchase_items/{id} { allow read, create: if isStaff(); allow update, delete: if isOwnerOrManager(); }
+  }
+}
