@@ -12,7 +12,6 @@ const links = [
   ["/purchases", "Purchases"],
   ["/expenses", "Expenses"],
   ["/reports", "Reports"],
-  ["/settings", "Settings"],
 ];
 
 export default function Layout({ children }) {
