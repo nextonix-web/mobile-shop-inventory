@@ -1240,3 +1240,404 @@ td {
     width: 100%;
   }
 }
+/* =========================
+   MOBILE RESPONSIVE FIXES
+========================= */
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* Tablet / Mobile Sidebar */
+@media (max-width: 900px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 16px;
+  }
+
+  .brand {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+  }
+
+  .nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .nav a {
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 10px 14px;
+  }
+
+  .nav button {
+    flex-shrink: 0;
+    width: auto !important;
+    margin-top: 0 !important;
+  }
+
+  .main {
+    padding: 16px;
+    width: 100%;
+  }
+}
+
+/* Forms */
+@media (max-width: 768px) {
+  .form-card,
+  .card,
+  .dashboard-card,
+  .kpi-card,
+  .report-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .form-grid,
+  .grid,
+  .filter-card,
+  .report-grid,
+  .dashboard-kpis,
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-actions,
+  .actions,
+  .invoice-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-muted,
+  .login-btn {
+    width: 100%;
+  }
+}
+
+/* Tables */
+.table,
+table {
+  min-width: 720px;
+}
+
+.card:has(table),
+.table-wrapper,
+.scroll {
+  overflow-x: auto;
+}
+
+/* Sales item responsive */
+@media (max-width: 768px) {
+  .sale-item-card,
+  .itemLine {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sale-summary {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Invoice mobile */
+@media (max-width: 768px) {
+  .invoice-page {
+    width: 100%;
+  }
+
+  .invoice-box {
+    padding: 16px;
+  }
+
+  .invoice-top,
+  .invoice-bottom,
+  .signature-row {
+    flex-direction: column;
+  }
+
+  .invoice-info {
+    text-align: left;
+  }
+
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-section {
+    overflow-x: auto;
+  }
+
+  .invoice-summary-box {
+    width: 100%;
+  }
+}
+
+/* Login mobile */
+@media (max-width: 480px) {
+  .login-card {
+    width: 100%;
+    padding: 24px 18px;
+  }
+
+  .login-title {
+    font-size: 26px;
+  }
+}
+/* =========================
+   MOBILE APP STYLE LAYOUT
+========================= */
+
+@media (max-width: 768px) {
+  body {
+    background: #f6f7fb;
+  }
+
+  .app {
+    display: block;
+    min-height: 100vh;
+    padding-bottom: 78px;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    height: 72px;
+    z-index: 9999;
+    padding: 8px 10px;
+    background: #111827;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .brand {
+    display: none !important;
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    overflow-x: auto;
+  }
+
+  .nav a {
+    min-width: 64px;
+    flex: 1;
+    margin: 0;
+    padding: 8px 6px;
+    border-radius: 12px;
+    font-size: 11px;
+    text-align: center;
+    color: #d1d5db;
+  }
+
+  .nav a.active {
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  .nav button,
+  .logout-btn {
+    display: none !important;
+  }
+
+  .main {
+    width: 100%;
+    max-width: 100%;
+    padding: 16px 14px 90px;
+  }
+
+  h1 {
+    font-size: 26px !important;
+    line-height: 1.2;
+    margin-bottom: 18px;
+  }
+
+  h2 {
+    font-size: 20px !important;
+  }
+
+  .card,
+  .form-card,
+  .dashboard-card,
+  .kpi-card,
+  .report-card {
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .grid,
+  .form-grid,
+  .filter-card,
+  .dashboard-kpis,
+  .dashboard-grid,
+  .report-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-input,
+  .form-select,
+  input,
+  select,
+  textarea {
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-muted,
+  .login-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .sale-item-card,
+  .itemLine {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sale-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .table,
+  table {
+    min-width: 760px;
+  }
+
+  .card:has(table),
+  .scroll,
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .invoice-box {
+    padding: 16px;
+  }
+
+  .invoice-top,
+  .invoice-bottom,
+  .signature-row {
+    flex-direction: column;
+  }
+
+  .invoice-info {
+    text-align: left;
+  }
+
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* =========================
+   MOBILE SIDE DRAWER MENU
+========================= */
+
+.mobile-menu-btn {
+  display: none;
+}
+
+.mobile-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .app {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 9998;
+    width: 100%;
+    height: 54px;
+    border: none;
+    background: #111827;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: left;
+    padding: 0 18px;
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 9998;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -280px !important;
+    bottom: 0 !important;
+    width: 270px !important;
+    height: 100vh !important;
+    z-index: 9999;
+    padding: 22px !important;
+    background: #111827;
+    transition: left 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar.sidebar-open {
+    left: 0 !important;
+  }
+
+  .brand {
+    display: flex !important;
+  }
+
+  .nav {
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .nav a {
+    display: block !important;
+    width: 100%;
+    text-align: left;
+    margin: 6px 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .nav button {
+    display: block !important;
+  }
+
+  .main {
+    width: 100%;
+    padding: 16px;
+  }
+}
