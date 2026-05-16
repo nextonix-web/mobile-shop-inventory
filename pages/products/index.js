@@ -10,6 +10,7 @@ import {
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
+
 import { db } from "../../lib/firebase";
 import { getCategories, addCategory } from "../../services/categoryService";
 import DataTable from "../../components/DataTable";
@@ -37,10 +38,13 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState(defaultCategories);
 
   const [form, setForm] = useState(emptyForm);
+
   const [editingId, setEditingId] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [categoryLoading, setCategoryLoading] = useState(false);
+
+  const [showModal, setShowModal] = useState(false);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -49,7 +53,10 @@ export default function ProductsPage() {
   useEffect(() => {
     loadCategories();
 
-    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const q = query(
+      collection(db, "products"),
+      orderBy("createdAt", "desc")
+    );
 
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map((d) => ({
@@ -82,7 +89,9 @@ export default function ProductsPage() {
 
     try {
       await addCategory(categoryName);
+
       await loadCategories();
+
       alert("Category added successfully");
     } catch (error) {
       alert(error.message || "Failed to add category");
@@ -103,7 +112,13 @@ export default function ProductsPage() {
       alert("Please select category");
       return;
     }
-
+if (
+  form.stockQuantity === "" ||
+  Number(form.stockQuantity) <= 0
+) {
+  alert("Stock quantity is required");
+  return;
+}
     setLoading(true);
 
     const payload = {
@@ -129,6 +144,7 @@ export default function ProductsPage() {
 
       setForm(emptyForm);
       setEditingId(null);
+      setShowModal(false);
     } catch (error) {
       alert(error.message || "Failed to save product");
     } finally {
@@ -149,7 +165,7 @@ export default function ProductsPage() {
       lowStockAlert: product.lowStockAlert || "",
     });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowModal(true);
   }
 
   async function handleDelete(id) {
@@ -165,6 +181,7 @@ export default function ProductsPage() {
   function cancelEdit() {
     setEditingId(null);
     setForm(emptyForm);
+    setShowModal(false);
   }
 
   const filteredProducts = products.filter((product) => {
@@ -220,145 +237,207 @@ export default function ProductsPage() {
 
   return (
     <>
-      <h1>Inventory</h1>
+      <div className="page-title-row">
+        <h1>Inventory</h1>
 
-      <div className="form-card">
-        <div className="form-title">
-          {editingId ? "Edit Product" : "Add Product"}
-        </div>
+        <button
+          type="button"
+          className="premium-add-btn"
+          onClick={() => {
+            setEditingId(null);
+            setForm(emptyForm);
+            setShowModal(true);
+          }}
+        >
+          + Add Product
+        </button>
+      </div>
 
-        <form onSubmit={handleSubmit} className="form-grid">
-          <div className="form-field">
-            <label>Product Name</label>
-            <input
-              className="form-input"
-              placeholder="Samsung A12 Panel"
-              value={form.name}
-              onChange={(e) =>
-                setForm({ ...form, name: e.target.value })
-              }
-            />
-          </div>
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="inventory-modal">
+            <div className="modal-header">
+              <h2>{editingId ? "Edit Product" : "Add Product"}</h2>
 
-          <div className="form-field">
-            <label>Category</label>
-            <select
-              className="form-select"
-              value={form.category}
-              onChange={(e) =>
-                setForm({ ...form, category: e.target.value })
-              }
-            >
-              <option value="">Select Category</option>
-
-              {categories.map((cat) => (
-                <option key={cat.id || cat.name} value={cat.name}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="button"
-              className="btn-muted"
-              onClick={handleAddCategory}
-              disabled={categoryLoading}
-              style={{ marginTop: 8 }}
-            >
-              {categoryLoading ? "Adding..." : "+ Add New Category"}
-            </button>
-          </div>
-
-          <div className="form-field">
-            <label>Model</label>
-            <input
-              className="form-input"
-              placeholder="A12, A32, A54"
-              value={form.model}
-              onChange={(e) =>
-                setForm({ ...form, model: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Purchase Price</label>
-            <input
-              className="form-input"
-              type="number"
-              min="0"
-              value={form.purchasePrice}
-              onChange={(e) =>
-                setForm({ ...form, purchasePrice: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Sale Price</label>
-            <input
-              className="form-input"
-              type="number"
-              min="0"
-              value={form.salePrice}
-              onChange={(e) =>
-                setForm({ ...form, salePrice: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Stock Quantity</label>
-            <input
-              className="form-input"
-              type="number"
-              min="0"
-              value={form.stockQuantity}
-              onChange={(e) =>
-                setForm({ ...form, stockQuantity: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Low Stock Alert</label>
-            <input
-              className="form-input"
-              type="number"
-              min="0"
-              value={form.lowStockAlert}
-              onChange={(e) =>
-                setForm({ ...form, lowStockAlert: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-actions">
-            <button className="btn-primary" disabled={loading}>
-              {loading
-                ? "Saving..."
-                : editingId
-                ? "Update Product"
-                : "Add Product"}
-            </button>
-
-            {editingId && (
               <button
                 type="button"
-                className="btn-muted"
+                className="close-modal-btn"
                 onClick={cancelEdit}
               >
-                Cancel
+                ✕
               </button>
-            )}
+            </div>
+
+            <div className="form-card modal-form-card">
+              <form onSubmit={handleSubmit} className="form-grid">
+                <div className="form-field">
+                  <label>Product Name</label>
+
+                  <input
+                    className="form-input"
+                    placeholder="Samsung A12 Panel"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        name: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Category</label>
+
+                  <select
+                    className="form-select"
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        category: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="">Select Category</option>
+
+                    {categories.map((cat) => (
+                      <option
+                        key={cat.id || cat.name}
+                        value={cat.name}
+                      >
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    className="btn-muted"
+                    onClick={handleAddCategory}
+                    disabled={categoryLoading}
+                    style={{ marginTop: 8 }}
+                  >
+                    {categoryLoading
+                      ? "Adding..."
+                      : "+ Add New Category"}
+                  </button>
+                </div>
+
+                <div className="form-field">
+                  <label>Model</label>
+
+                  <input
+                    className="form-input"
+                    placeholder="A12, A32, A54"
+                    value={form.model}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        model: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Purchase Price</label>
+
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    value={form.purchasePrice}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        purchasePrice: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Sale Price</label>
+
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    value={form.salePrice}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        salePrice: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Stock Quantity</label>
+
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    value={form.stockQuantity}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        stockQuantity: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Low Stock Alert</label>
+
+                  <input
+                    className="form-input"
+                    type="number"
+                    min="0"
+                    value={form.lowStockAlert}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        lowStockAlert: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    className="btn-primary"
+                    disabled={loading}
+                  >
+                    {loading
+                      ? "Saving..."
+                      : editingId
+                      ? "Update Product"
+                      : "Add Product"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-muted"
+                    onClick={cancelEdit}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      )}
 
       <div className="filter-card">
         <input
           className="form-input"
-          placeholder="Search by product, model, category, price..."
+          placeholder="Search by product, model, category..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -371,7 +450,10 @@ export default function ProductsPage() {
           <option value="">All Categories</option>
 
           {categories.map((cat) => (
-            <option key={cat.id || cat.name} value={cat.name}>
+            <option
+              key={cat.id || cat.name}
+              value={cat.name}
+            >
               {cat.label}
             </option>
           ))}
@@ -385,7 +467,7 @@ export default function ProductsPage() {
           <option value="">All Stock</option>
           <option value="available">Available Stock</option>
           <option value="low">Low Stock</option>
-          <option value="out">Out of Stock</option>
+          <option value="out">Out Of Stock</option>
         </select>
 
         <button
@@ -403,16 +485,23 @@ export default function ProductsPage() {
       <div className="grid">
         <div className="card">
           <div className="muted">Filtered Products</div>
-          <div className="total">{filteredProducts.length}</div>
+
+          <div className="total">
+            {filteredProducts.length}
+          </div>
         </div>
 
         <div className="card">
           <div className="muted">Stock Cost Value</div>
-          <div className="total">{totalStockValue.toLocaleString()}</div>
+
+          <div className="total">
+            {totalStockValue.toLocaleString()}
+          </div>
         </div>
 
         <div className="card">
           <div className="muted">Stock Sale Value</div>
+
           <div className="total successText">
             {totalSaleValue.toLocaleString()}
           </div>
@@ -423,60 +512,90 @@ export default function ProductsPage() {
         rows={filteredProducts}
         empty="No products found"
         columns={[
-          { key: "name", label: "Name" },
-          { key: "category", label: "Category" },
-          { key: "model", label: "Model" },
-          {
-            key: "purchasePrice",
-            label: "Purchase Price",
-            render: (product) =>
-              Number(product.purchasePrice || 0).toLocaleString(),
-          },
-          {
-            key: "salePrice",
-            label: "Sale Price",
-            render: (product) =>
-              Number(product.salePrice || 0).toLocaleString(),
-          },
-          {
-            key: "stockQuantity",
-            label: "Stock",
-            render: (product) => (
-              <span
-                className={
-                  Number(product.stockQuantity || 0) <=
-                  Number(product.lowStockAlert || 0)
-                    ? "dangerText"
-                    : "successText"
-                }
-              >
-                {product.stockQuantity}
-              </span>
-            ),
-          },
-          { key: "lowStockAlert", label: "Low Alert" },
-          {
-            key: "actions",
-            label: "Actions",
-            render: (product) => (
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  className="btn small"
-                  onClick={() => handleEdit(product)}
-                >
-                  Edit
-                </button>
+  {
+    key: "sr",
+    label: "#",
+    render: (_, index) => index + 1,
+  },
 
-                <button
-                  className="btn small danger"
-                  onClick={() => handleDelete(product.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            ),
-          },
-        ]}
+  {
+    key: "name",
+    label: "Name",
+  },
+
+  {
+    key: "category",
+    label: "Category",
+  },
+
+  {
+    key: "model",
+    label: "Model",
+  },
+
+  {
+    key: "purchasePrice",
+    label: "Purchase Price",
+    render: (product) =>
+      Number(product.purchasePrice || 0).toLocaleString(),
+  },
+
+  {
+    key: "salePrice",
+    label: "Sale Price",
+    render: (product) =>
+      Number(product.salePrice || 0).toLocaleString(),
+  },
+
+  {
+    key: "stockQuantity",
+    label: "Stock",
+    render: (product) => (
+      <span
+        className={
+          Number(product.stockQuantity || 0) <=
+          Number(product.lowStockAlert || 0)
+            ? "dangerText"
+            : "successText"
+        }
+      >
+        {product.stockQuantity}
+      </span>
+    ),
+  },
+
+  {
+    key: "lowStockAlert",
+    label: "Low Alert",
+  },
+
+  {
+    key: "actions",
+    label: "Actions",
+    render: (product) => (
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+        }}
+      >
+        <button
+          className="btn small"
+          onClick={() => handleEdit(product)}
+        >
+          Edit
+        </button>
+
+        <button
+          className="btn small danger"
+          onClick={() => handleDelete(product.id)}
+        >
+          Delete
+        </button>
+      </div>
+    ),
+  },
+]}
       />
     </>
   );

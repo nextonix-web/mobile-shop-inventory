@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -12,8 +12,25 @@ export default function AuthGate({ children }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [captchaInput, setCaptchaInput] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  const captcha = useMemo(() => {
+    const chars =
+      "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+    let result = "";
+
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(
+        Math.floor(Math.random() * chars.length)
+      );
+    }
+
+    return result;
+  }, [user === null]);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => setUser(u || null));
@@ -23,12 +40,18 @@ export default function AuthGate({ children }) {
     e.preventDefault();
 
     setErr("");
+
+    if (captchaInput.trim() !== captcha) {
+      setErr("Captcha verification failed");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      setErr(error.message);
+      setErr("Invalid email or password");
     } finally {
       setLoading(false);
     }
@@ -48,9 +71,12 @@ export default function AuthGate({ children }) {
     return (
       <div className="login-page">
         <div className="login-card">
-<div className="login-logo">
-  <img src="logo.png" alt="Logo" />
-</div>
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="login-logo-image"
+          />
+
           <h1 className="login-title">Welcome Back</h1>
 
           <p className="login-subtitle">
@@ -79,6 +105,23 @@ export default function AuthGate({ children }) {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="login-field">
+              <label>Captcha Verification</label>
+
+              <div className="captcha-box">
+                <span className="captcha-text">{captcha}</span>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Enter captcha"
+                value={captchaInput}
+                onChange={(e) =>
+                  setCaptchaInput(e.target.value)
+                }
               />
             </div>
 

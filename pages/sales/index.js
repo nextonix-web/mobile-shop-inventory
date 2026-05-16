@@ -18,9 +18,13 @@ export default function Sales() {
 
   const [customerId, setCustomerId] = useState("");
   const [paidAmount, setPaidAmount] = useState(0);
-  const [items, setItems] = useState([{ productId: "", quantity: 1, price: 0 }]);
+  const [items, setItems] = useState([
+    { productId: "", quantity: 1, price: 0 },
+  ]);
+
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSaleModal, setShowSaleModal] = useState(false);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -36,6 +40,13 @@ export default function Sales() {
   );
 
   const remaining = Math.max(0, total - (+paidAmount || 0));
+
+  function resetSaleForm() {
+    setCustomerId("");
+    setPaidAmount(0);
+    setItems([{ productId: "", quantity: 1, price: 0 }]);
+    setErr("");
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -80,9 +91,8 @@ export default function Sales() {
         }),
       });
 
-      setCustomerId("");
-      setPaidAmount(0);
-      setItems([{ productId: "", quantity: 1, price: 0 }]);
+      resetSaleForm();
+      setShowSaleModal(false);
     } catch (error) {
       setErr(error.message || "Failed to create sale");
     } finally {
@@ -102,9 +112,7 @@ export default function Sales() {
 
     const matchesSearch = text.includes(search.toLowerCase());
 
-    const matchesStatus = statusFilter
-      ? sale.status === statusFilter
-      : true;
+    const matchesStatus = statusFilter ? sale.status === statusFilter : true;
 
     const matchesCustomer = customerFilter
       ? sale.customerId === customerFilter
@@ -130,75 +138,130 @@ export default function Sales() {
 
   return (
     <>
-      <h1>Sales</h1>
+      <div className="page-title-row">
+        <h1>Sales</h1>
 
-      <form className="form-card" onSubmit={handleSubmit}>
-        <div className="form-title">New Multi-Item Sale</div>
-
-        <div className="form-grid">
-          <div className="form-field">
-            <label>Customer Optional</label>
-
-            <select
-              className="form-select"
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-            >
-              <option value="">Walk-in / Cash Customer</option>
-
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name} - {customer.phone}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Paid Amount</label>
-
-            <input
-              className="form-input"
-              type="number"
-              min="0"
-              value={paidAmount}
-              onChange={(e) => setPaidAmount(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <SaleItemEditor products={products} items={items} setItems={setItems} />
-
-        <div className="sale-summary">
-          <div>
-            <span>Total</span>
-            <strong>{money(total)}</strong>
-          </div>
-
-          <div>
-            <span>Paid</span>
-            <strong className="successText">{money(paidAmount)}</strong>
-          </div>
-
-          <div>
-            <span>Remaining</span>
-            <strong className={remaining > 0 ? "dangerText" : "successText"}>
-              {money(remaining)}
-            </strong>
-          </div>
-        </div>
-
-        {err && <p className="dangerText">{err}</p>}
-
-        <button className="btn-primary" disabled={loading}>
-          {loading ? "Creating Sale..." : "Complete Sale"}
+        <button
+          type="button"
+          className="premium-add-btn"
+          onClick={() => {
+            resetSaleForm();
+            setShowSaleModal(true);
+          }}
+        >
+          + New Sale
         </button>
+      </div>
 
-        <p className="notice">
-          Credit sale requires a selected customer. Stock is deducted inside a
-          Firestore transaction, so negative stock is blocked.
-        </p>
-      </form>
+      {showSaleModal && (
+        <div className="modal-overlay">
+          <div className="inventory-modal">
+            <div className="modal-header">
+              <h2>New Multi-Item Sale</h2>
+
+              <button
+                type="button"
+                className="close-modal-btn"
+                onClick={() => {
+                  resetSaleForm();
+                  setShowSaleModal(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="form-card modal-form-card">
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-field">
+                    <label>Customer Optional</label>
+
+                    <select
+                      className="form-select"
+                      value={customerId}
+                      onChange={(e) => setCustomerId(e.target.value)}
+                    >
+                      <option value="">Walk-in / Cash Customer</option>
+
+                      {customers.map((customer) => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.name} - {customer.phone}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-field">
+                    <label>Paid Amount</label>
+
+                    <input
+                      className="form-input"
+                      type="number"
+                      min="0"
+                      value={paidAmount}
+                      onChange={(e) => setPaidAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <SaleItemEditor
+                  products={products}
+                  items={items}
+                  setItems={setItems}
+                />
+
+                <div className="sale-summary">
+                  <div>
+                    <span>Total</span>
+                    <strong>{money(total)}</strong>
+                  </div>
+
+                  <div>
+                    <span>Paid</span>
+                    <strong className="successText">
+                      {money(paidAmount)}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Remaining</span>
+                    <strong
+                      className={remaining > 0 ? "dangerText" : "successText"}
+                    >
+                      {money(remaining)}
+                    </strong>
+                  </div>
+                </div>
+
+                {err && <p className="dangerText">{err}</p>}
+
+                <div className="form-actions">
+                  <button className="btn-primary" disabled={loading}>
+                    {loading ? "Creating Sale..." : "Complete Sale"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-muted"
+                    onClick={() => {
+                      resetSaleForm();
+                      setShowSaleModal(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                <p className="notice">
+                  Credit sale requires a selected customer. Stock is deducted
+                  inside a Firestore transaction, so negative stock is blocked.
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="filter-card">
         <input
@@ -263,9 +326,7 @@ export default function Sales() {
 
         <div className="card">
           <div className="muted">Remaining</div>
-          <div className="total dangerText">
-            {money(filteredRemainingSales)}
-          </div>
+          <div className="total dangerText">{money(filteredRemainingSales)}</div>
         </div>
       </div>
 
@@ -273,6 +334,11 @@ export default function Sales() {
         rows={filteredSales}
         empty="No sales found"
         columns={[
+          {
+            key: "sr",
+            label: "#",
+            render: (_, index) => index + 1,
+          },
           {
             key: "createdAt",
             label: "Date",

@@ -39,8 +39,10 @@ export default function Layout({ children }) {
           <img src="/logo.png" alt="Logo" className="sidebar-logo" />
 
           <div>
-            <div className="brand-title">Mobile Parts Shop</div>
-            <div className="brand-subtitle">Inventory System</div>
+            <div className="brand-title">Beijing Mobile</div>
+            <div className="brand-subtitle">POS System</div>
+            <div className="brand-subtitle">by Nextonix</div>
+
           </div>
         </div>
 

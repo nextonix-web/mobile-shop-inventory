@@ -18,8 +18,10 @@ const emptyForm = {
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
   const [form, setForm] = useState(emptyForm);
+
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -58,6 +60,8 @@ export default function ExpensesPage() {
 
       setForm(emptyForm);
       setEditingId(null);
+      setShowExpenseModal(false);
+
       await loadExpenses();
     } catch (error) {
       alert(error.message || "Failed to save expense");
@@ -80,7 +84,7 @@ export default function ExpensesPage() {
         : new Date().toISOString().slice(0, 10),
     });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowExpenseModal(true);
   }
 
   async function handleDelete(id) {
@@ -97,6 +101,7 @@ export default function ExpensesPage() {
   function cancelEdit() {
     setEditingId(null);
     setForm(emptyForm);
+    setShowExpenseModal(false);
   }
 
   const filteredExpenses = expenses.filter((expense) => {
@@ -128,125 +133,151 @@ export default function ExpensesPage() {
 
   return (
     <>
-      <h1>Expenses</h1>
+      <div className="page-title-row">
+        <h1>Expenses</h1>
 
-      <div className="form-card">
-        <div className="form-title">
-          {editingId ? "Edit Expense" : "Add Expense"}
-        </div>
+        <button
+          type="button"
+          className="premium-add-btn"
+          onClick={() => {
+            setEditingId(null);
+            setForm(emptyForm);
+            setShowExpenseModal(true);
+          }}
+        >
+          + Add Expense
+        </button>
+      </div>
 
-        <form onSubmit={handleSubmit} className="form-grid">
-          <div className="form-field">
-            <label>Title</label>
-            <input
-              className="form-input"
-              required
-              placeholder="Expense title"
-              value={form.title}
-              onChange={(e) =>
-                setForm({ ...form, title: e.target.value })
-              }
-            />
-          </div>
+      {showExpenseModal && (
+        <div className="modal-overlay">
+          <div className="inventory-modal">
+            <div className="modal-header">
+              <h2>{editingId ? "Edit Expense" : "Add Expense"}</h2>
 
-          <div className="form-field">
-            <label>Category</label>
-            <select
-              className="form-select"
-              value={form.category}
-              onChange={(e) =>
-                setForm({ ...form, category: e.target.value })
-              }
-            >
-              <option value="general">General</option>
-              <option value="rent">Rent</option>
-              <option value="salary">Salary</option>
-              <option value="electricity">Electricity</option>
-              <option value="internet">Internet</option>
-              <option value="transport">Transport</option>
-              <option value="repair">Repair</option>
-              <option value="food">Food</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Amount</label>
-            <input
-              className="form-input"
-              required
-              type="number"
-              min="1"
-              placeholder="Amount"
-              value={form.amount}
-              onChange={(e) =>
-                setForm({ ...form, amount: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Payment Method</label>
-            <select
-              className="form-select"
-              value={form.paymentMethod}
-              onChange={(e) =>
-                setForm({ ...form, paymentMethod: e.target.value })
-              }
-            >
-              <option value="cash">Cash</option>
-              <option value="bank">Bank</option>
-              <option value="easypaisa">Easypaisa</option>
-              <option value="jazzcash">JazzCash</option>
-              <option value="card">Card</option>
-            </select>
-          </div>
-
-          <div className="form-field">
-            <label>Date</label>
-            <input
-              className="form-input"
-              type="date"
-              value={form.date}
-              onChange={(e) =>
-                setForm({ ...form, date: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-field">
-            <label>Note</label>
-            <input
-              className="form-input"
-              placeholder="Note"
-              value={form.note}
-              onChange={(e) =>
-                setForm({ ...form, note: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="form-actions">
-            <button className="btn-primary" disabled={loading}>
-              {loading
-                ? "Saving..."
-                : editingId
-                ? "Update Expense"
-                : "Add Expense"}
-            </button>
-
-            {editingId && (
               <button
                 type="button"
-                className="btn-muted"
+                className="close-modal-btn"
                 onClick={cancelEdit}
               >
-                Cancel
+                ✕
               </button>
-            )}
+            </div>
+
+            <div className="form-card modal-form-card">
+              <form onSubmit={handleSubmit} className="form-grid">
+                <div className="form-field">
+                  <label>Title</label>
+                  <input
+                    className="form-input"
+                    required
+                    placeholder="Expense title"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Category</label>
+                  <select
+                    className="form-select"
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm({ ...form, category: e.target.value })
+                    }
+                  >
+                    <option value="general">General</option>
+                    <option value="rent">Rent</option>
+                    <option value="salary">Salary</option>
+                    <option value="electricity">Electricity</option>
+                    <option value="internet">Internet</option>
+                    <option value="transport">Transport</option>
+                    <option value="repair">Repair</option>
+                    <option value="food">Food</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label>Amount</label>
+                  <input
+                    className="form-input"
+                    required
+                    type="number"
+                    min="1"
+                    placeholder="Amount"
+                    value={form.amount}
+                    onChange={(e) =>
+                      setForm({ ...form, amount: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Payment Method</label>
+                  <select
+                    className="form-select"
+                    value={form.paymentMethod}
+                    onChange={(e) =>
+                      setForm({ ...form, paymentMethod: e.target.value })
+                    }
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank</option>
+                    <option value="easypaisa">Easypaisa</option>
+                    <option value="jazzcash">JazzCash</option>
+                    <option value="card">Card</option>
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label>Date</label>
+                  <input
+                    className="form-input"
+                    type="date"
+                    value={form.date}
+                    onChange={(e) =>
+                      setForm({ ...form, date: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label>Note</label>
+                  <input
+                    className="form-input"
+                    placeholder="Note"
+                    value={form.note}
+                    onChange={(e) =>
+                      setForm({ ...form, note: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button className="btn-primary" disabled={loading}>
+                    {loading
+                      ? "Saving..."
+                      : editingId
+                      ? "Update Expense"
+                      : "Add Expense"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-muted"
+                    onClick={cancelEdit}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      )}
 
       <div className="filter-card">
         <input
@@ -298,12 +329,25 @@ export default function ExpensesPage() {
         </button>
       </div>
 
-      <div className="card">
-        <h2>Total Expenses: {totalFilteredExpenses.toLocaleString()}</h2>
+      <div className="grid">
+        <div className="card">
+          <div className="muted">Filtered Expenses</div>
+          <div className="total">{filteredExpenses.length}</div>
+        </div>
 
-        <table>
+        <div className="card">
+          <div className="muted">Total Expenses</div>
+          <div className="total dangerText">
+            {totalFilteredExpenses.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <table className="table">
           <thead>
             <tr>
+              <th>#</th>
               <th>Date</th>
               <th>Title</th>
               <th>Category</th>
@@ -317,37 +361,42 @@ export default function ExpensesPage() {
           <tbody>
             {filteredExpenses.length === 0 && (
               <tr>
-                <td colSpan="7">No expenses found.</td>
+                <td colSpan="8">No expenses found.</td>
               </tr>
             )}
 
-            {filteredExpenses.map((expense) => (
+            {filteredExpenses.map((expense, index) => (
               <tr key={expense.id}>
+                <td>{index + 1}</td>
+
                 <td>
                   {expense.date?.toDate
                     ? expense.date.toDate().toLocaleDateString()
                     : "-"}
                 </td>
+
                 <td>{expense.title}</td>
                 <td>{expense.category}</td>
                 <td>{expense.paymentMethod}</td>
                 <td>{Number(expense.amount || 0).toLocaleString()}</td>
                 <td>{expense.note || "-"}</td>
-                <td>
-                  <button
-                    className="btn small"
-                    onClick={() => handleEdit(expense)}
-                  >
-                    Edit
-                  </button>
 
-                  <button
-                    className="btn small danger"
-                    onClick={() => handleDelete(expense.id)}
-                    style={{ marginLeft: 8 }}
-                  >
-                    Delete
-                  </button>
+                <td>
+                  <div className="actions">
+                    <button
+                      className="btn small"
+                      onClick={() => handleEdit(expense)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="btn small danger"
+                      onClick={() => handleDelete(expense.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
