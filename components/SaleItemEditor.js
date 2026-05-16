@@ -1,4 +1,8 @@
+import { useState } from "react";
+
 export default function SaleItemEditor({ products, items, setItems }) {
+  const [searchTerms, setSearchTerms] = useState({});
+
   const add = () => {
     setItems([...items, { productId: "", quantity: 1, price: 0 }]);
   };
@@ -11,21 +15,55 @@ export default function SaleItemEditor({ products, items, setItems }) {
     );
   };
 
+  const remove = (i) => {
+    setItems(items.filter((_, idx) => idx !== i));
+  };
+
   return (
-    <div>
+    <div className="sale-items">
       {items.map((it, i) => {
         const selectedProduct = products.find((x) => x.id === it.productId);
 
+        const search = searchTerms[i] || "";
+
+        const filteredProducts = products.filter((product) => {
+          const text = `
+            ${product.name || ""}
+            ${product.model || ""}
+            ${product.category || ""}
+          `.toLowerCase();
+
+          return text.includes(search.toLowerCase());
+        });
+
         return (
-          <div className="itemLine" key={i}>
-            <div className="field">
+          <div className="sale-item-card" key={i}>
+            <div className="form-field">
+              <label>Search Product</label>
+              <input
+                className="form-input"
+                placeholder="Search product / model / category..."
+                value={search}
+                onChange={(e) =>
+                  setSearchTerms({
+                    ...searchTerms,
+                    [i]: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div className="form-field">
               <label>Product</label>
 
               <select
+                className="form-select"
                 required
                 value={it.productId}
                 onChange={(e) => {
-                  const product = products.find((x) => x.id === e.target.value);
+                  const product = products.find(
+                    (x) => x.id === e.target.value
+                  );
 
                   update(i, {
                     productId: e.target.value,
@@ -35,7 +73,7 @@ export default function SaleItemEditor({ products, items, setItems }) {
               >
                 <option value="">Select product</option>
 
-                {products.map((p) => (
+                {filteredProducts.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} {p.model} | Stock {p.stockQuantity}
                   </option>
@@ -43,9 +81,10 @@ export default function SaleItemEditor({ products, items, setItems }) {
               </select>
             </div>
 
-            <div className="field">
+            <div className="form-field">
               <label>Qty</label>
               <input
+                className="form-input"
                 type="number"
                 min="1"
                 max={selectedProduct?.stockQuantity || 999999}
@@ -56,9 +95,10 @@ export default function SaleItemEditor({ products, items, setItems }) {
               />
             </div>
 
-            <div className="field">
+            <div className="form-field">
               <label>Price</label>
               <input
+                className="form-input"
                 type="number"
                 min="0"
                 value={it.price}
@@ -70,16 +110,16 @@ export default function SaleItemEditor({ products, items, setItems }) {
 
             <button
               type="button"
-              className="btn danger"
-              onClick={() => setItems(items.filter((_, idx) => idx !== i))}
+              className="btn small danger"
+              onClick={() => remove(i)}
             >
-              ×
+              Remove
             </button>
           </div>
         );
       })}
 
-      <button type="button" className="btn muted" onClick={add}>
+      <button type="button" className="btn-muted add-item-btn" onClick={add}>
         + Add item
       </button>
     </div>

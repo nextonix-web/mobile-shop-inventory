@@ -35,10 +35,16 @@ const defaultCategories = [
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(defaultCategories);
+
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [categoryLoading, setCategoryLoading] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [stockFilter, setStockFilter] = useState("");
 
   useEffect(() => {
     loadCategories();
@@ -160,6 +166,57 @@ export default function ProductsPage() {
     setEditingId(null);
     setForm(emptyForm);
   }
+
+  const filteredProducts = products.filter((product) => {
+    const text = `
+      ${product.name || ""}
+      ${product.model || ""}
+      ${product.category || ""}
+      ${product.purchasePrice || ""}
+      ${product.salePrice || ""}
+    `.toLowerCase();
+
+    const matchesSearch = text.includes(search.toLowerCase());
+
+    const matchesCategory = categoryFilter
+      ? product.category === categoryFilter
+      : true;
+
+    const stockQty = Number(product.stockQuantity || 0);
+    const lowAlert = Number(product.lowStockAlert || 0);
+
+    let matchesStock = true;
+
+    if (stockFilter === "low") {
+      matchesStock = stockQty <= lowAlert;
+    }
+
+    if (stockFilter === "available") {
+      matchesStock = stockQty > 0;
+    }
+
+    if (stockFilter === "out") {
+      matchesStock = stockQty <= 0;
+    }
+
+    return matchesSearch && matchesCategory && matchesStock;
+  });
+
+  const totalStockValue = filteredProducts.reduce(
+    (sum, product) =>
+      sum +
+      Number(product.stockQuantity || 0) *
+        Number(product.purchasePrice || 0),
+    0
+  );
+
+  const totalSaleValue = filteredProducts.reduce(
+    (sum, product) =>
+      sum +
+      Number(product.stockQuantity || 0) *
+        Number(product.salePrice || 0),
+    0
+  );
 
   return (
     <>
@@ -298,14 +355,89 @@ export default function ProductsPage() {
         </form>
       </div>
 
+      <div className="filter-card">
+        <input
+          className="form-input"
+          placeholder="Search by product, model, category, price..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select
+          className="form-select"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="">All Categories</option>
+
+          {categories.map((cat) => (
+            <option key={cat.id || cat.name} value={cat.name}>
+              {cat.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="form-select"
+          value={stockFilter}
+          onChange={(e) => setStockFilter(e.target.value)}
+        >
+          <option value="">All Stock</option>
+          <option value="available">Available Stock</option>
+          <option value="low">Low Stock</option>
+          <option value="out">Out of Stock</option>
+        </select>
+
+        <button
+          className="btn-muted"
+          onClick={() => {
+            setSearch("");
+            setCategoryFilter("");
+            setStockFilter("");
+          }}
+        >
+          Reset
+        </button>
+      </div>
+
+      <div className="grid">
+        <div className="card">
+          <div className="muted">Filtered Products</div>
+          <div className="total">{filteredProducts.length}</div>
+        </div>
+
+        <div className="card">
+          <div className="muted">Stock Cost Value</div>
+          <div className="total">{totalStockValue.toLocaleString()}</div>
+        </div>
+
+        <div className="card">
+          <div className="muted">Stock Sale Value</div>
+          <div className="total successText">
+            {totalSaleValue.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
       <DataTable
-        rows={products}
+        rows={filteredProducts}
+        empty="No products found"
         columns={[
           { key: "name", label: "Name" },
           { key: "category", label: "Category" },
           { key: "model", label: "Model" },
-          { key: "purchasePrice", label: "Purchase Price" },
-          { key: "salePrice", label: "Sale Price" },
+          {
+            key: "purchasePrice",
+            label: "Purchase Price",
+            render: (product) =>
+              Number(product.purchasePrice || 0).toLocaleString(),
+          },
+          {
+            key: "salePrice",
+            label: "Sale Price",
+            render: (product) =>
+              Number(product.salePrice || 0).toLocaleString(),
+          },
           {
             key: "stockQuantity",
             label: "Stock",
