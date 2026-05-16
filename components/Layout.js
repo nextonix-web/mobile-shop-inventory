@@ -7,7 +7,6 @@ import { auth } from "../lib/firebase";
 const links = [
   ["/", "Dashboard"],
   ["/products", "Inventory"],
-  ["/categories", "Categories"],
   ["/sales", "Sales"],
   ["/customers", "Customers"],
   ["/purchases", "Purchases"],
